@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'public')));
 var userRouter = require("./user");
-
-
+var cors = require('cors');
+app.use(cors({origin: 'http://localhost:3001'}));
 var secret = "Everyonelovesberlin6";
 
 var port = 3000;
@@ -96,7 +96,9 @@ app.post("/login", (req, res) => {
             if (strWithoutSpace == password){
                 payload = { UserName: username };
 	            options = { expiresIn: "2h" };
-	            const token = jwt.sign(payload, secret, options);
+                const token = jwt.sign(payload, secret, options);
+                res.header("Access-Control-Allow-Origin","*");
+                res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	            res.send(token);
             }
             else{
@@ -184,7 +186,11 @@ app.get('/getPOI_info/:POI', function(req, res){
  */
 app.get('/getCatPOI/:category', function(req, res){
     var r = req.params.category
-    DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE CategoryName='" + r + "'")
+    var query = "SELECT * FROM tbl_POI WHERE CategoryName='" + r + "'"
+    if (r == "All"){
+        query = "SELECT * FROM tbl_POI"
+    }
+    DButilsAzure.execQuery(query)
     .then(function(result){
         if (result.length == 0)
             res.send("No POI match to this category")
@@ -231,7 +237,7 @@ app.get('/GetRandomPOI/:minRank', (req, res) => {
             var POIs = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE Rank >= '" + minRank + "'")
             var counter = 0
             var toSend = []
-            if (POIs.length < 3){
+            if (POIs.length < 4){
                 for (var i = 0; i < POIs.length; i++){
                     toSend[counter] = POIs[i]
                     counter++
@@ -242,14 +248,14 @@ app.get('/GetRandomPOI/:minRank', (req, res) => {
                 var rand = Math.random();
                 var fhinished = false
                 while (!fhinished){
-                    for (var i = 0; !fhinished && counter < 3 &&  i < POIs.length; i++){
+                    for (var i = 0; !fhinished && counter < 4 &&  i < POIs.length; i++){
                         if (rand > 0.5){
                             if (toSend.includes(POIs[i])){
                                 continue
                             }
                             toSend[counter] = POIs[i];
                             counter++
-                            if (counter == 3){
+                            if (counter == 4){
                                 fhinished = true
                             }
                         }
