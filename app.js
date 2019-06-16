@@ -1,5 +1,7 @@
 var express = require("express");
 var app = express();
+var cors = require('cors');
+app.use(cors());
 var path = require('path');
 var DButilsAzure = require('./DButils');
 const jwt = require("jsonwebtoken");
@@ -7,8 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'public')));
 var userRouter = require("./user");
-var cors = require('cors');
-app.use(cors({origin: 'http://localhost:3001'}));
+
 var secret = "Everyonelovesberlin6";
 
 var port = 3000;
@@ -17,14 +18,27 @@ app.listen(port, function () {
 });
 
 
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'POST,GET,PUT,DELETE, OPTIONS');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-auth-token, Access-Control-Allow-Headers, X-Requested-With');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+  //  res.setHeader('Access-Control-Allow-Credentials', true);
+
+
     next();
 });
 
 
-/**
+/*
  * this function check the token for the user.
  */
 app.use("/private", (req, res,next) => {
@@ -87,19 +101,21 @@ app.post('/Register', (req, res) => {
  * this function checks the user id and password and assign a token to him
  */
 app.post("/login", (req, res) => {
+    
     async function login(){
         try{
-            var username = await req.body.UserName
-            var password = await req.body.Password
+            var username = req.body.UserName
+            var password = req.body.Password
             var result = await DButilsAzure.execQuery("SELECT Password FROM tbl_Users WHERE UserName='" + username + "'")
             var strWithoutSpace = result[0].Password.replace(/\s*$/,'');
-            if (strWithoutSpace == password){
+            if (strWithoutSpace == password && strWithoutSpace > 0){
                 payload = { UserName: username };
-	            options = { expiresIn: "2h" };
+                options = { expiresIn: "2h" };
                 const token = jwt.sign(payload, secret, options);
-                res.header("Access-Control-Allow-Origin","*");
-                res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	            res.send(token);
+                //res.header("Access-Control-Allow-Origin","*");
+                //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+                //res.header("Access-Control-Allow-Headers, Content-Type, x-auth-token, Access-Control-Allow-Headers, X-Requested-With");
+                res.send(token);
             }
             else{
                 res.send("Wrong User Name Or Password")
@@ -111,7 +127,9 @@ app.post("/login", (req, res) => {
     }
     login();
 });
-
+app.post("/testPromise", function(req,res){
+    res.send("hello world");
+})
 
 /**
  * this function restores a user password according to QA recovery verification
@@ -231,9 +249,10 @@ app.get('/getQuestions/:user', function(req, res){
  * function that returns random POI's 
  */
 app.get('/GetRandomPOI/:minRank', (req, res) => {
-	async function getRecomendedPOI(){
+    
+    async function getRecomendedPOI(){
         try{
-            var minRank = await req.params.minRank
+            var minRank = req.params.minRank
             var POIs = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE Rank >= '" + minRank + "'")
             var counter = 0
             var toSend = []
