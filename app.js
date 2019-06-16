@@ -18,7 +18,7 @@ app.listen(port, function () {
 });
 
 
-app.use(function (req, res, next) {
+app.use("/", function (req, res, next) {
 
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,7 +42,7 @@ app.use(function (req, res, next) {
  * this function check the token for the user.
  */
 app.use("/private", (req, res,next) => {
-    const token = req.header("x-auth-token");
+    const token = req.header("token");
     // no token
     if (!token) res.status(401).send("Access denied. No token provided.");
     // verify token
@@ -63,31 +63,57 @@ app.use("/private/user",userRouter);
 app.post('/Register', (req, res) => {
     async function Reg(){
         try{
-            var username = req.body.UserName
-            var password = req.body.Password
-            var fName = req.body.FirstName
-            var lName = req.body.LastName
-            var city = req.body.City
-            var country = req.body.Country
-            var FOI = req.body.FieldOfInterest
-            var question = req.body.Question
-            var answer = req.body.Answer
+            var username = req.body.username
+            var password = req.body.password
+            var fName = req.body.fName
+            var lName = req.body.lName
+            var city = req.body.city
+            var country = req.body.country
+            var question1 = req.body.question1
+            var answer1 = req.body.answer1
+            var question2 = req.body.question2
+            var answer2 = req.body.answer2
+            var questions = [question1,question2]
+            var answers = [answer1,answer2]
+            var Email = req.body.Email
+            var sights = req.body.sights
+            var museums = req.body.museums
+            var rastaurants = req.body.rastaurants
+            var shopping = req.body.shopping
+            var i =0;
+            var FOI = []
+            if (sights){
+                FOI[i] = "Sights"
+                i++
+            }
+            if (museums){
+                FOI[i] = "Museums"
+                i++
+            }
+            if (rastaurants){
+                FOI[i] = "Rastaurants"
+                i++
+            }
+            if (shopping){
+                FOI[i] = "Shopping"
+            }
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
             
-            if (checkUser.length > 0)
-                res.send("User name already exist")
-            else if (checkUser.length > 0 || question.length != answer.length || FOI.length < 2)
-                res.send(err)
+            if (checkUser.length > 0){
+                res.header("User name already exists")
+                res.send("User name already exists")
+            }
             else{
-                await DButilsAzure.execQuery("INSERT INTO tbl_Users (UserName, Password, FirstName, LastName, City, Country) VALUES ('" + username + "', '" + password + "', '" + fName +"', '" + lName +"', '" + city +"', '" + country +"')")
-    
-                for (var i = 0; i < question.length; i++){
-                    await DButilsAzure.execQuery("INSERT INTO tbl_User_RecoveryQA (UserName, Question, Answer) VALUES ('" + username + "', '" + question[i] + "', '" + answer[i] + "')")
+                await DButilsAzure.execQuery("INSERT INTO tbl_Users (UserName, Password, FirstName, LastName, City, Country,Email) VALUES ('" + username + "', '" + password + "', '" + fName +"', '" + lName +"', '" + city +"', '" + country +"', '" + Email +"')")
+                for (var i = 0; i < questions.length; i++){
+                    await DButilsAzure.execQuery("INSERT INTO tbl_User_RecoveryQA (UserName, Question, Answer) VALUES ('" + username + "', '" + questions[i] + "', '" + answers[i] + "')")
                 }
                 for (var i = 0 ; i < FOI.length; i++)
                     await DButilsAzure.execQuery("INSERT INTO tbl_User_FOI (UserName, FieldOfInterest) VALUES ('" + username + "', '" + FOI[i] + "')")
+                    res.header("success")
+                    res.send("success")
             }
-            res.send("success")
+            
         }
         catch(err){
             res.send(err)
