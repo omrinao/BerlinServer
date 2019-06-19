@@ -67,7 +67,7 @@ router.post('/savePOI', (req, res) => {
 router.get('/getRecomendedPOI/:user', (req, res) => {
 	async function getRecomendedPOI(){
         try{
-            var username = req.params.user
+            var username = await req.params.user
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
             
             if (checkUser.length == 0)
@@ -118,19 +118,7 @@ router.get('/GetPOISaved/:user', (req, res) => {
             for (var i = 0; i < result.length; i++){
                 result[i].POIName = result[i].POIName.replace(/\s*$/,'');
             }
-            var toReturn;
-            var resultPOI;
-            for (i = 0; i < result.length; i++){
-                resultPOI = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE POIName='" + result[i].POIName + "'")
-                if (i == 0){
-                    toReturn = resultPOI;
-                }
-                else{
-                    toReturn.push(resultPOI[0])
-                }
-            }
-            
-            res.send(toReturn)
+            res.send(result)
         }
         catch(err){
             res.send(err)

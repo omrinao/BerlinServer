@@ -18,7 +18,7 @@ app.listen(port, function () {
 });
 
 
-app.use("/", function (req, res, next) {
+app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -42,7 +42,7 @@ app.use("/", function (req, res, next) {
  * this function check the token for the user.
  */
 app.use("/private", (req, res,next) => {
-    const token = req.header("token");
+    const token = req.header("x-auth-token");
     // no token
     if (!token) res.status(401).send("Access denied. No token provided.");
     // verify token
@@ -121,6 +121,8 @@ app.post('/Register', (req, res) => {
     }
     Reg();
 });
+
+
 
 
 /**
