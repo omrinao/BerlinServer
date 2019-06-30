@@ -78,7 +78,7 @@ app.post('/Register', (req, res) => {
             var Email = req.body.Email
             var sights = req.body.sights
             var museums = req.body.museums
-            var rastaurants = req.body.rastaurants
+            var restaurants = req.body.restaurants
             var shopping = req.body.shopping
             var i =0;
             var FOI = []
@@ -90,8 +90,8 @@ app.post('/Register', (req, res) => {
                 FOI[i] = "Museums"
                 i++
             }
-            if (rastaurants){
-                FOI[i] = "Rastaurants"
+            if (restaurants){
+                FOI[i] = "Restaurants"
                 i++
             }
             if (shopping){
@@ -280,8 +280,9 @@ app.get('/GetRandomPOI/:minRank', (req, res) => {
     
     async function getRecomendedPOI(){
         try{
-            var minRank = req.params.minRank
-            var POIs = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE Rank >= '" + minRank + "'")
+            var minRank = parseFloat(req.params.minRank)
+            var query = "SELECT * FROM tbl_POI WHERE Rank>=" + minRank
+            var POIs = await DButilsAzure.execQuery(query)
             var counter = 0
             var toSend = []
             if (POIs.length < 4){
