@@ -1,0 +1,82 @@
+  <div class="container">
+      <div class="center">
+        <div class="col-md-6 col-md-offset-3">
+          <br><br><br><br><br><br>
+          <h2>Explore Berlin</h2>
+          <hr>
+        </div>
+      </div>
+    </div>
+      <div id="portfolio-items" class="portfolio-items">
+        <div ng-repeat="poi in POIs" class={{poi.CategoryName}}>
+          <div class="recent-work-wrap">
+            <img class="img-responsive" ng-src="{{poi.ImageURL}}" alt="">
+            <div class="overlay">
+              <div class="recent-work-inner">
+                <h3><U ng-bind="poi.POIName"></U></h3>
+                <p ng-bind="poi.Description"></p>
+                <a href="#!login" class="preview"><i class="fa fa-sign-in"></i>
+                  Login to View Details</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--/.portfolio-item-->
+
+<section id="about">
+  <div class="container">
+    <div class="center">
+      <div class="col-md-6 col-md-offset-3">
+        <br><br><br><br>
+        <h2>About Us</h2>
+        <hr>
+        <p class="lead">
+          </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6 wow fadeInRight">
+        <img src="images/aboutUsIMG.jpg" class="img-responsive" />
+      </div>
+      <!--/.col-sm-6-->
+
+      <div class="col-sm-6 wow fadeInDown">
+        <div class="accordion">
+          <div class="panel-group" id="accordion1">
+            <div class="panel panel-default">
+              <br>
+                <h1 align="center" class="panel-title"><U>Who we are?</U></h1>
+                <div class="panel-body">
+                  <p>Two students in their third year of software and information systems engineering at Ben Gurion University.
+                  </p>
+                  <br>
+                <h2 align="center" class="panel-title"><U>About this project</U></h2>
+                <br>
+                  <p>This project was part of "Internet Programming Envionments" course. In this project we implemented both the server
+                    side (using NodeJS) and the client side (using AngularJS).
+                  </p>
+                
+                  <h2 align="center" class="panel-title"><U>Why Berlin?</U></h2><br>
+                    <p>
+                        Because it's just the best city in the world! The landscape, the culture, the food and the special atmosphere of this city!
+                    </p>
+                  </div>
+            </div>
+          </div>
+          <!--/#accordion1-->
+        </div>
+      </div>
+
+    </div>
+    <!--/.row-->
+  </div>
+  <!--/.container-->
+</section>
+<!--/#about-->
+
+<div class="map" id="map">  
+  <iframe src="https://www.google.com/maps/embed?pb=!1m23!1m12!1m3!1d77687.59836578452!2d13.474994078801817!3d52.52009038486826!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m8!3e3!4m5!1s0x47a84e373f035901%3A0x42120465b5e3b70!2z15HXqNec15nXnywg15LXqNee16DXmdeU!3m2!1d52.520006599999995!2d13.404954!4m0!5e0!3m2!1siw!2sil!4v1560253026241!5m2!1siw!2sil" width="100%" height="500" frameborder="0" style="border:0" allowfullscreen></iframe>
+</div>

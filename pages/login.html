@@ -1,0 +1,82 @@
+    <section id="login" ng-show="logInShow" ng-hide="restoreInShow">
+        <br><br><br><br>
+      <div class="contact-page" >
+        <div class="container" >
+          <div class="center" >
+              <br>
+            <h2><U>Login</U></h2><hr>
+          </div>
+          <div class="row contact-wrap">
+            <div class="col-md-8 col-md-offset-2">
+              <div id="sendmessage">You are logged in!</div>
+              <div id="errormessage"></div>
+              <form id="login" action="" method="post" role="form" class="contactForm">
+                <div class="form-group">
+                  <input id="username" type="text" ng-model="username" name="usernameTxtBox" class="form-control" id="usernameTxtBox" placeholder="User Name" data-rule="minlen:2"
+                    data-msg="Please enter at least 2 chars" />
+                  <div class="validation"></div>
+                </div>
+                <div class="form-group">
+                    <input id="password" type="password" ng-model="password" name="passwordTxtBox" class="form-control" id="passwordTxtBox" placeholder="Password" data-rule="minlen:2"
+                      data-msg="Please enter at least 2 chars" />
+                    <div class="validation"></div>
+                  </div>
+                <br><br>
+              </form>
+            </div>
+          </div>
+          <!--/.row-->
+        </div>
+        <!--/.container-->
+      </div>
+      <!--/#contact-page-->
+      <button id="loginBtn" ng-click="tryLogin()">Login</button>
+      <button id="restoreBtn" ng-click="restorePass()">Restore Password</button>
+    </section>
+
+
+    <section id="Restore" ng-hide="logInShow" ng-show="restoreInShow">
+      <br><br><br><br>
+    <div class="contact-page" >
+      <div class="container" >
+        <div class="center" >
+            <br>
+          <h2><U>Restoring password</U></h2><hr>
+        </div>
+        <div class="row contact-wrap">
+          <div class="col-md-8 col-md-offset-2">
+            <div id="sendmessage">You are logged in!</div>
+            <div id="errormessage"></div>
+            <form id="login" action="" method="post" role="form" class="contactForm">
+              <div class="form-group">
+                Your first question:<input id="question1" type="text" ng-model="question1" name="question1TxtBox" class="form-control" id="question1TxtBox" placeholder="Question 1" data-rule="minlen:2"
+                  data-msg="Please enter at least 2 chars" />
+                <div class="validation"></div>
+              </div>
+              <div class="form-group">
+                  Enter your answer:<input id="answer1" type="text" ng-model="answer1" name="answer1TxtBox" class="form-control" id="answer1TxtBox" placeholder="Answer 1" data-rule="minlen:2"
+                    data-msg="Please enter at least 2 chars" />
+                  <div class="validation"></div>
+              </div>
+              <div class="form-group">
+                  Your second question:<input id="question2" type="text" ng-model="question2" name="question2TxtBox" class="form-control" id="question2TxtBox" placeholder="Question 2" data-rule="minlen:2"
+                  data-msg="Please enter at least 2 chars" />
+                <div class="validation"></div>
+              </div>
+              <div class="form-group">
+                  Enter your answer:<input id="answer2" type="text" ng-model="answer2" name="answer2TxtBox" class="form-control" id="answer1TxtBox" placeholder="Answer 2" data-rule="minlen:2"
+                  data-msg="Please enter at least 2 chars" />
+                <div class="validation"></div>
+            </div>
+              <br><br>
+            </form>
+          </div>
+        </div>
+        <!--/.row-->
+      </div>
+      <!--/.container-->
+    </div>
+    <!--/#contact-page-->
+    <button id="submitBtn" ng-click="checkAns()">submit</button>
+    <button id="backBtn" ng-click="backToLogIn()">cancel</button>
+  </section>

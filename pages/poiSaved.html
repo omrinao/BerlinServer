@@ -1,0 +1,68 @@
+  <section id="portfolio">
+      <br><br><br><br>
+    <div class="container">
+      <div class="center">
+        <div class="col-md-6 col-md-offset-3">
+          <h2>Points of Interests</h2>
+          <hr>
+          <p class="lead">Your saved point of interests</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="col-lg-12">
+        <ul class="portfolio-filter text-center">
+          <li><a class="btn btn-default" ng-click="getCatPOI('All')" data-filter=".all">All Attractions</a></li>
+        <li><a class="btn btn-default" ng-click="getCatPOI('Sights')" data-filter=".sight">Sights</a></li>
+        <li><a class="btn btn-default" ng-click="getCatPOI('Museums')" data-filter=".museum">Museums</a></li>
+        <li><a class="btn btn-default" ng-click="getCatPOI('Restaurants')" data-filter=".restaurant">Restaurants</a></li>
+        <li><a class="btn btn-default" ng-click="getCatPOI('Shopping')" data-filter=".shopping">Shopping</a></li>
+        <li><a class="btn btn-default" ng-click="sortCurrPOIsByRank()" data-filter=".shopping">Sort by rank</a></li>
+      </ul>
+        <!--/#portfolio-filter-->
+        <div class="row">
+          <div id="portfolio-items" class="portfolio-items">
+            <div ng-repeat="poi in POIs" class={{poi.CategoryName}} ng-hide="NoPoisView">
+              <div class="recent-work-wrap" ng-hide="detailsView">
+                <img class="img-responsive" ng-src="{{poi.ImageURL}}" alt="">
+                <div class="overlay">
+                  <div class="recent-work-inner">
+                    <h3><U ng-bind="poi.POIName"></U></h3>
+                    <p ng-bind="poi.Description"></p>
+                    <a ng-click="getPOIInfo(poi.POIName)" class="preview"><i class="fa fa-eye"></i>
+                      View Details</a>
+                      <a ng-click="removeFromList(poi.POIName)" class="preview" ><i class="fa fa-star"></i>
+                        Remove from favorites</a> 
+                        <a ng-click="addReview(poi.POIName)" class="preview" ><i class="fa fa-smile-o"></i>
+                          Add review</a> 
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!--/.portfolio-item-->
+            <div id="information" ng-show="detailsView">
+              <h1 align="center"><U>{{POIs.POIName}}</U></h1>
+              <img class="img-responsive" ng-src="{{POIs.ImageURL}}" alt="">
+              <h4 align="center">{{POIs.Description}}</h4><br>
+              <h4>{{POIs.Rank}}</h4><h4>{{POIs.numOfViews}}</h4>
+              <h4><U>Reviews:</U></h4>
+              <h5 ng-hide="noReview">{{POIs.Reviews}}</h5>
+              <a class="preview" ng-show="noReview"><i class="fa fa-edit"></i>
+                {{POIs.Reviews}}</a> 
+                <br>
+                <button type="button" ng-click="goBackToPOIs()"  id="backToPOIs"  >Back</button>
+            </div>
+            <div id="noPOIs" ng-show="NoPoisView" >
+                <h1 align="center"><U>No point of intrest in</U></h1>
+                  <br>
+            </div>
+            
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  <!--/#portfolio-item-->
