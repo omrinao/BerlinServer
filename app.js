@@ -10,6 +10,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname,'public')));
 var userRouter = require("./user");
 
+
 var secret = "Everyonelovesberlin6";
 
 var port = 3000;
@@ -18,31 +19,18 @@ app.listen(port, function () {
 });
 
 
-app.use(function (req, res, next) {
-
-    // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    // Request methods you wish to allow
-    res.setHeader('Access-Control-Allow-Methods', 'POST,GET,PUT,DELETE, OPTIONS');
-
-    // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type,x-auth-token, Access-Control-Allow-Headers, X-Requested-With');
-
-    // Set to true if you need the website to include cookies in the requests sent
-    // to the API (e.g. in case you use sessions)
-  //  res.setHeader('Access-Control-Allow-Credentials', true);
-
-
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
 
 
-/*
+/**
  * this function check the token for the user.
  */
 app.use("/private", (req, res,next) => {
-    const token = req.header("x-auth-token");
+    const token = req.header("token");
     // no token
     if (!token) res.status(401).send("Access denied. No token provided.");
     // verify token
@@ -63,57 +51,31 @@ app.use("/private/user",userRouter);
 app.post('/Register', (req, res) => {
     async function Reg(){
         try{
-            var username = req.body.username
-            var password = req.body.password
-            var fName = req.body.fName
-            var lName = req.body.lName
-            var city = req.body.city
-            var country = req.body.country
-            var question1 = req.body.question1
-            var answer1 = req.body.answer1
-            var question2 = req.body.question2
-            var answer2 = req.body.answer2
-            var questions = [question1,question2]
-            var answers = [answer1,answer2]
-            var Email = req.body.Email
-            var sights = req.body.sights
-            var museums = req.body.museums
-            var restaurants = req.body.restaurants
-            var shopping = req.body.shopping
-            var i =0;
-            var FOI = []
-            if (sights){
-                FOI[i] = "Sights"
-                i++
-            }
-            if (museums){
-                FOI[i] = "Museums"
-                i++
-            }
-            if (restaurants){
-                FOI[i] = "Restaurants"
-                i++
-            }
-            if (shopping){
-                FOI[i] = "Shopping"
-            }
+            var username = req.body.UserName
+            var password = req.body.Password
+            var fName = req.body.FirstName
+            var lName = req.body.LastName
+            var city = req.body.City
+            var country = req.body.Country
+            var FOI = req.body.FieldOfInterest
+            var question = req.body.Question
+            var answer = req.body.Answer
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
             
-            if (checkUser.length > 0){
-                res.header("User name already exists")
-                res.send("User name already exists")
-            }
+            if (checkUser.length > 0)
+                res.send("User name already exist")
+            else if (checkUser.length > 0 || question.length != answer.length || FOI.length < 2)
+                res.send(err)
             else{
-                await DButilsAzure.execQuery("INSERT INTO tbl_Users (UserName, Password, FirstName, LastName, City, Country,Email) VALUES ('" + username + "', '" + password + "', '" + fName +"', '" + lName +"', '" + city +"', '" + country +"', '" + Email +"')")
-                for (var i = 0; i < questions.length; i++){
-                    await DButilsAzure.execQuery("INSERT INTO tbl_User_RecoveryQA (UserName, Question, Answer) VALUES ('" + username + "', '" + questions[i] + "', '" + answers[i] + "')")
+                await DButilsAzure.execQuery("INSERT INTO tbl_Users (UserName, Password, FirstName, LastName, City, Country) VALUES ('" + username + "', '" + password + "', '" + fName +"', '" + lName +"', '" + city +"', '" + country +"')")
+    
+                for (var i = 0; i < question.length; i++){
+                    await DButilsAzure.execQuery("INSERT INTO tbl_User_RecoveryQA (UserName, Question, Answer) VALUES ('" + username + "', '" + question[i] + "', '" + answer[i] + "')")
                 }
                 for (var i = 0 ; i < FOI.length; i++)
                     await DButilsAzure.execQuery("INSERT INTO tbl_User_FOI (UserName, FieldOfInterest) VALUES ('" + username + "', '" + FOI[i] + "')")
-                    res.header("success")
-                    res.send("success")
             }
-            
+            res.send("success")
         }
         catch(err){
             res.send(err)
@@ -123,27 +85,21 @@ app.post('/Register', (req, res) => {
 });
 
 
-
-
 /**
  * this function checks the user id and password and assign a token to him
  */
 app.post("/login", (req, res) => {
-    
     async function login(){
         try{
             var username = req.body.UserName
             var password = req.body.Password
             var result = await DButilsAzure.execQuery("SELECT Password FROM tbl_Users WHERE UserName='" + username + "'")
             var strWithoutSpace = result[0].Password.replace(/\s*$/,'');
-            if (strWithoutSpace == password && strWithoutSpace > 0){
+            if (strWithoutSpace == password){
                 payload = { UserName: username };
-                options = { expiresIn: "2h" };
-                const token = jwt.sign(payload, secret, options);
-                //res.header("Access-Control-Allow-Origin","*");
-                //res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-                //res.header("Access-Control-Allow-Headers, Content-Type, x-auth-token, Access-Control-Allow-Headers, X-Requested-With");
-                res.send(token);
+	            options = { expiresIn: "2h" };
+	            const token = jwt.sign(payload, secret, options);
+	            res.send(token);
             }
             else{
                 res.send("Wrong User Name Or Password")
@@ -155,9 +111,7 @@ app.post("/login", (req, res) => {
     }
     login();
 });
-app.post("/testPromise", function(req,res){
-    res.send("hello world");
-})
+
 
 /**
  * this function restores a user password according to QA recovery verification
@@ -216,7 +170,7 @@ app.get('/getPOI_info/:POI', function(req, res){
                 result[i].Description = result[i].Description.replace(/\s*$/,'');
                 result[i].Rank = result[i].Rank * 20 + "%";
             }
-            var reviews = await DButilsAzure.execQuery("SELECT TOP 2 (Review) FROM tbl_User_Review WHERE POIName='" + r + "' ORDER BY Date DESC")
+            var reviews = await DButilsAzure.execQuery("SELECT TOP 2 * FROM tbl_User_Review WHERE POIName='" + r + "' ORDER BY Date DESC")
             res.send(result.concat(reviews))
         }
         catch(err){
@@ -277,12 +231,10 @@ app.get('/getQuestions/:user', function(req, res){
  * function that returns random POI's 
  */
 app.get('/GetRandomPOI/:minRank', (req, res) => {
-    
-    async function getRecomendedPOI(){
+	async function getRecomendedPOI(){
         try{
-            var minRank = parseFloat(req.params.minRank)
-            var query = "SELECT * FROM tbl_POI WHERE Rank>=" + minRank
-            var POIs = await DButilsAzure.execQuery(query)
+            var minRank = await req.params.minRank
+            var POIs = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE Rank >= '" + minRank + "'")
             var counter = 0
             var toSend = []
             if (POIs.length < 4){

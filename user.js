@@ -40,13 +40,13 @@ router.post('/savePOI', (req, res) => {
             var username = req.body.UserName
             var poiname = req.body.POIName
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
-            
+            var timestamp = + new Date();
             if (checkUser.length == 0)
                 res.send("User name does not exist")
 
             var result = await DButilsAzure.execQuery("SELECT * FROM tbl_Saved_POI WHERE UserName='" + username + "' AND POIName='" + poiname + "'")
             if (result.length == 0){
-                result = await DButilsAzure.execQuery("INSERT INTO tbl_Saved_POI (UserName, POIName) VALUES ('" + username + "', '" + poiname + "')")
+                result = await DButilsAzure.execQuery("INSERT INTO tbl_Saved_POI (UserName, POIName, SavedTime) VALUES ('" + username + "', '" + poiname + "', '" + timestamp + "')")
                 res.send("success")
             }
             else{
@@ -78,7 +78,7 @@ router.get('/getRecomendedPOI/:user', (req, res) => {
             var finalQuery = "";
             for (var i = 0; i < queryFOIResult.length; i++){
                 strWithoutSpace = queryFOIResult[i].FieldOfInterest.replace(/\s*$/,'');
-                var queryPOIResult = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE (CategoryName='" + strWithoutSpace +
+                var queryPOIResult = await DButilsAzure.execQuery("SELECT TOP 1 * FROM tbl_POI WHERE (CategoryName='" + strWithoutSpace +
              "' AND NumOfViews >= 10000 AND Rank >= 4.0)")
                 if (finalQuery.length == 0){
                     finalQuery = queryPOIResult;
@@ -114,11 +114,23 @@ router.get('/GetPOISaved/:user', (req, res) => {
             if (checkUser.length == 0)
                 res.send("User name does not exist")
 
-            var result = await DButilsAzure.execQuery("SELECT POIName FROM tbl_Saved_POI WHERE UserName='" + username + "'")
+            var result = await DButilsAzure.execQuery("SELECT POIName,SavedTime FROM tbl_Saved_POI WHERE UserName='" + username + "'")
             for (var i = 0; i < result.length; i++){
                 result[i].POIName = result[i].POIName.replace(/\s*$/,'');
             }
-            res.send(result)
+            var toReturn;
+            var resultPOI;
+            for (i = 0; i < result.length; i++){
+                resultPOI = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE POIName='" + result[i].POIName + "'")
+                if (i == 0){
+                    toReturn = resultPOI 
+                }
+                else{
+                    toReturn.push(resultPOI[0])
+                }
+            }
+            
+            res.send(toReturn)
         }
         catch(err){
             res.send(err)
@@ -136,12 +148,12 @@ router.post('/RemovePOI', (req, res) => {
     async function RemoveSavedPOI(){
         try{
             var username = req.body.UserName
+            var poiname = req.body.POIName
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
             
             if (checkUser.length == 0)
                 res.send("User name does not exist")
 
-            var poiname = req.body.POIName
             if (poiname == "All"){
                 await DButilsAzure.execQuery("DELETE FROM tbl_Saved_POI WHERE UserName='" + username +"'")
             }
@@ -196,6 +208,8 @@ router.post('/SaveUsersReview', (req, res) => {
             var username = req.body.UserName
             var poiname = req.body.POIName
             var Rank = req.body.Rank
+            var a = parseFloat(Rank)
+            Rank = a
             var Review = req.body.Description
             var newNumOfReviews = 0;
             var reviewDate = new Date();
@@ -213,12 +227,12 @@ router.post('/SaveUsersReview', (req, res) => {
                     oldRank = oldRank + numOfReviews[i].Rank
                 }
                 //update the user review.
-                await DButilsAzure.execQuery("UPDATE tbl_User_Review SET Rank=" + Rank + ",Review='" + Review + "',Date='" + date + "' WHERE POIName='" + poiname + "' AND UserName='" + username + "'");
+                result = await DButilsAzure.execQuery("UPDATE tbl_User_Review SET Rank=" + Rank + ",Review='" + Review + "',Date='" + date + "' WHERE POIName='" + poiname + "' AND UserName='" + username + "'");
 
                             
-                newRank = ((oldRank - oldUserRank[0].Rank) * (numOfReviews.length - 1) + parseFloat(Rank))/(numOfReviews.length);
+                newRank = (oldRank - oldUserRank[0].Rank + Rank) / (numOfReviews.length);
                 //update the POI table with the new avgRank
-                await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + newRank + ",NumOfViews='" + numOfReviews.length +"'  WHERE POIName='" + poiname + "'");
+                result = await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + newRank + ",NumOfViews='" + numOfReviews.length +"'  WHERE POIName='" + poiname + "'");
                 res.send("Update success")
             }
             else{   //did not reviewed by the user.
@@ -228,18 +242,18 @@ router.post('/SaveUsersReview', (req, res) => {
                     for (var i = 0 ; i < numOfReviews.length; i = i + 1){
                         oldRank = oldRank + numOfReviews[i].Rank
                     }
-                    newRank = (oldRank * (numOfReviews.length) + parseFloat(Rank))/(numOfReviews.length + 1);
+                    newRank = (oldRank * (numOfReviews.length) + Rank)/(numOfReviews.length + 1);
                     newNumOfReviews = numOfReviews.length + 1
 
                     //inserting the review of the user to the user review table.
                     result = await DButilsAzure.execQuery("INSERT INTO tbl_User_Review (UserName,POIName,Rank,Review,Date) VALUES ('" + username + "', '" + poiname + "', '" + Rank + "', '"  + Review +"', '" + date + "')");
 
                     //update the POI table with the new avgRank.
-                    await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + newRank + ",NumOfViews='" + newNumOfReviews +"'  WHERE POIName='" + poiname + "'");
+                    result = await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + newRank + ",NumOfViews='" + newNumOfReviews +"'  WHERE POIName='" + poiname + "'");
                 }
                 else{//first review of the POI
                     result = await DButilsAzure.execQuery("INSERT INTO tbl_User_Review (UserName,POIName,Rank,Review,Date) VALUES ('" + username + "', '" + poiname + "', '" + Rank + "', '"  + Review +"', '" + date + "')");
-                    result = await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + newRank + ",NumOfViews='" + 1 +"'  WHERE POIName='" + poiname + "'");
+                    result = await DButilsAzure.execQuery("UPDATE tbl_POI SET Rank=" + Rank + ",NumOfViews='" + 1 +"'  WHERE POIName='" + poiname + "'");
                 }
                 res.send("success")
             }
@@ -249,6 +263,58 @@ router.post('/SaveUsersReview', (req, res) => {
         }
     }
     saveReview();
+
+
+});
+
+router.get('/getCatPOIForUser/:user/:category', function(req, res){
+    async function getUserPoiCat(){
+        try{
+            var category = req.params.category
+            var username = req.params.user
+            var userOPIs = await DButilsAzure.execQuery("SELECT POIName FROM tbl_Saved_POI WHERE UserName='" + username + "'")
+            var toReturn;
+            var tmp;
+            for (var i=0; i < userOPIs.length; i++){
+                tmp = await DButilsAzure.execQuery("SELECT * FROM tbl_POI WHERE CategoryName='" + category + "'AND POIName='"+ userOPIs[i].POIName + "'")
+                /*if (i === 0){
+                    if (tmp.length > 0){
+                        toReturn = tmp
+                    }
+                }
+                else{
+                    if (tmp.length > 0 && toReturn != null){
+                        toReturn.push(tmp)
+                    }
+                    else{
+                        if (toReturn == null && tmp.length > 0){
+                            toReturn = tmp
+                        }
+                    }
+                }
+                */
+               if (toReturn == null && tmp.length > 0)
+               {
+                toReturn = tmp
+               }
+               else
+               if (toReturn != null && tmp.length > 0){
+                toReturn.push(tmp[0])
+               }
+            }
+            if (toReturn == null){
+                res.header("no pois saved in this category")
+                res.send("no pois saved in this category")
+            }
+            else{
+                res.send(toReturn)
+            }
+        }
+        catch(err){
+            res.send(err)
+        }
+    }
+    getUserPoiCat()
 });
 
 module.exports = router;
