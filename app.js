@@ -120,21 +120,18 @@ app.post("/RestorePassword", (req, res) => {
     async function restore(){
         try{
             var username = await req.body.UserName
-            var question = req.body.Question
-            var answer = req.body.Answer
+            var answer = req.body.Answers
             var checkUser = await DButilsAzure.execQuery("SELECT UserName FROM tbl_Users WHERE UserName='" + username + "'")
             
             if (checkUser.length == 0)
                 res.send("User name does not exist")
 
-            var result = await DButilsAzure.execQuery("SELECT Question, Answer FROM tbl_User_RecoveryQA WHERE UserName='" + username + "'")
-            var qWithoutSpace = "";
+            var result = await DButilsAzure.execQuery("SELECT Answer FROM tbl_User_RecoveryQA WHERE UserName='" + username + "'")
             var aWithoutSpace = "";
             var flag = true;
             for (i = 0; i < result.length && flag; i++){
-                qWithoutSpace = result[i].Question.replace(/\s*$/,'');
                 aWithoutSpace = result[i].Answer.replace(/\s*$/,'');
-                if (qWithoutSpace != question[i] || aWithoutSpace != answer[i]){
+                if (aWithoutSpace != answer[i]){
                     flag = false;
                 }
             }
